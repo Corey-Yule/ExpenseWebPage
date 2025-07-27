@@ -1,27 +1,17 @@
-import { Suspense } from "react"
-
-export default function ConfirmEmailPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ConfirmEmail />
-    </Suspense>
-  )
-}
-
 "use client"
 
 import { useEffect, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { supabase } from "../../../lib/supabaseClient"
 
-function ConfirmEmail() {
+export default function ConfirmEmail() {
   const [status, setStatus] = useState("Verifying...")
   const searchParams = useSearchParams()
   const router = useRouter()
 
   useEffect(() => {
     const confirmEmail = async () => {
-      const code = searchParams.get("code") // Supabase v2 tokens
+      const code = searchParams.get("code")
       if (!code) {
         setStatus("No confirmation code found.")
         return
