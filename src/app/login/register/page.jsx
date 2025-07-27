@@ -1,0 +1,77 @@
+"use client"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { supabase } from "../../../lib/supabaseClient"
+
+// Move this function outside the component
+async function RegisterUser(email, password) {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+  })
+  if (error) {
+    throw new Error(error.message)
+  }
+  return data
+}
+
+export default function RegisterPage() {
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const router = useRouter()
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError("")
+    try {
+      await RegisterUser(email, password)
+      router.push("/login/register/verify")
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100">
+      {/* Navbar */}
+      <div className="w-full border-b border-neutral-200 dark:border-neutral-700 px-6 py-4 flex justify-between items-center">
+        <div className="text-2xl font-bold">Corey’s Webpage</div>
+        <nav className="space-x-6">
+          <a href="/" className="hover:underline">Home</a>
+          <a href="/dashboard" className="hover:underline">Dashboard</a>
+          <a href="/login" className="hover:underline">Login</a>
+          <a href="/login/register" className="hover:underline">Register</a>
+        </nav>
+      </div>
+
+      {/* Register Form */}
+      <div className="max-w-md mx-auto mt-20 px-4">
+        <h1 className="text-xl font-bold mb-4">Register</h1>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="border w-full p-2 rounded bg-white dark:bg-neutral-800"
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="border w-full p-2 rounded bg-white dark:bg-neutral-800"
+          />
+          <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded w-full">
+            Register
+          </button>
+          {error && <p className="text-red-500">{error}</p>}
+        </form>
+      </div>
+    </div>
+  )
+}

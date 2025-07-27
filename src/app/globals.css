@@ -24,3 +24,14 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--foreground);
+  padding-top: 2.5%;
+  padding-left: 5%;
+}
+.logoutButton {
+  padding-left: 5%;
+}
