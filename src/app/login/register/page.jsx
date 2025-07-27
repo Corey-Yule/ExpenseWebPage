@@ -40,7 +40,6 @@ export default function RegisterPage() {
         <div className="text-2xl font-bold">Corey’s Webpage</div>
         <nav className="space-x-6">
           <a href="/" className="hover:underline">Home</a>
-          <a href="/dashboard" className="hover:underline">Dashboard</a>
           <a href="/login" className="hover:underline">Login</a>
           <a href="/login/register" className="hover:underline">Register</a>
         </nav>
