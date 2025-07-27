@@ -84,6 +84,7 @@ export default function HomePage() {
           >
             Get Started
           </a>
+          
         )}
       </div>
     </div>
