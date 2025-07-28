@@ -43,6 +43,12 @@ export default function HomePage() {
     </a>
   )}
 
+  {session && (
+    <a href="/userSetup" className="hover:underline">
+      Finance Information
+    </a>
+  )}
+
   {session ? (
     <button
       onClick={async () => {
@@ -67,7 +73,8 @@ export default function HomePage() {
       <div className="max-w-2xl mx-auto mt-20 px-4 text-center">
         <h1 className="text-3xl font-bold mb-4">Welcome to Corey's Webpage</h1>
         <p className="text-neutral-600 dark:text-neutral-300 mb-6">
-          This is a public homepage. Feel free to look around — login is only needed for private pages.
+          This is a public homepage. Feel free to look around — login is only needed for private pages.  
+          This website is built for using our finance dashboard, which can be accessed after signing up/logging in. 
         </p>
 
         {session ? (
