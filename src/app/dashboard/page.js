@@ -91,25 +91,34 @@ export default function Dashboard() {
       ]
     : [];
 
-  // Prepare line chart data (fix: start from financeData totals)
+  // Build lineData with starting baseline and cumulative updates
   const lineData = (() => {
-    if (!transactions || transactions.length === 0 || !financeData) return [];
+    if (!financeData) return [];
 
-    const sortedTx = [...transactions].sort(
-      (a, b) => new Date(a.date) - new Date(b.date)
-    );
+    const sortedTx = transactions
+      ? [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date))
+      : [];
 
-    // Start with initial values from financeData
-    let cumulativeTotalMoney = financeData.income + financeData.savings;
-    let cumulativeExpenditures = financeData.expenditures;
+    let cumulativeTotalMoney = (financeData.income || 0) + (financeData.savings || 0);
+    let cumulativeExpenditures = financeData.expenditures || 0;
 
     const data = [];
 
+    // Starting baseline point date (earliest transaction date or today)
+    const startDate =
+      sortedTx.length > 0 ? new Date(sortedTx[0].date) : new Date();
+
+    data.push({
+      date: startDate.toLocaleDateString(),
+      totalMoney: cumulativeTotalMoney,
+      expenditures: cumulativeExpenditures,
+    });
+
     sortedTx.forEach((tx) => {
-      if (tx.amount < 0) {
-        cumulativeExpenditures += Math.abs(tx.amount);
-      } else {
+      if (tx.amount > 0) {
         cumulativeTotalMoney += tx.amount;
+      } else {
+        cumulativeExpenditures += Math.abs(tx.amount);
       }
 
       data.push({
