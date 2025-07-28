@@ -1,5 +1,6 @@
 "use client";
 
+import AddTransaction from "./AddTransaction";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useRouter } from "next/navigation";
@@ -17,17 +18,46 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  LineChart,
+  Line,
 } from "recharts";
 
-const COLORS = ["#4ade80", "#f87171", "#fbbf24"]; // green, red, yellow (tailwind colors)
+const COLORS = ["#4ade80", "#f87171", "#fbbf24"]; // green, red, yellow
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [financeData, setFinanceData] = useState(null);
+  const [transactions, setTransactions] = useState([]);
   const router = useRouter();
 
+  const fetchFinanceAndTransactions = async (userId) => {
+    const { data: finance, error: financeError } = await supabase
+      .from("finance")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+
+    if (financeError) {
+      console.error("Error fetching finance data:", financeError.message);
+    } else {
+      setFinanceData(finance);
+    }
+
+    const { data: txData, error: txError } = await supabase
+      .from("transactions")
+      .select("*")
+      .eq("user_id", userId)
+      .order("date", { ascending: false });
+
+    if (txError) {
+      console.error("Error fetching transactions:", txError.message);
+    } else {
+      setTransactions(txData);
+    }
+  };
+
   useEffect(() => {
-    const getUserAndFinance = async () => {
+    const getUserAndData = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -36,29 +66,16 @@ export default function Dashboard() {
         router.push("/login");
       } else {
         setUser(session.user);
-
-        const { data, error } = await supabase
-          .from("finance")
-          .select("*")
-          .eq("user_id", session.user.id)
-          .single();
-
-        if (error) {
-          console.error("Error fetching finance data:", error.message);
-        } else {
-          setFinanceData(data);
-        }
+        await fetchFinanceAndTransactions(session.user.id);
       }
     };
 
-    getUserAndFinance();
+    getUserAndData();
   }, [router]);
 
-  if (!user) {
-    return null; // or loading spinner
-  }
+  if (!user) return null; // or spinner
 
-  // Prepare data for charts
+  // Prepare chart data
   const pieData = financeData
     ? [
         { name: "Income", value: financeData.income || 0 },
@@ -73,6 +90,37 @@ export default function Dashboard() {
         { name: "Expenditures", amount: financeData.expenditures || 0 },
       ]
     : [];
+
+  // Prepare line chart data (fix: start from financeData totals)
+  const lineData = (() => {
+    if (!transactions || transactions.length === 0 || !financeData) return [];
+
+    const sortedTx = [...transactions].sort(
+      (a, b) => new Date(a.date) - new Date(b.date)
+    );
+
+    // Start with initial values from financeData
+    let cumulativeTotalMoney = financeData.income + financeData.savings;
+    let cumulativeExpenditures = financeData.expenditures;
+
+    const data = [];
+
+    sortedTx.forEach((tx) => {
+      if (tx.amount < 0) {
+        cumulativeExpenditures += Math.abs(tx.amount);
+      } else {
+        cumulativeTotalMoney += tx.amount;
+      }
+
+      data.push({
+        date: new Date(tx.date).toLocaleDateString(),
+        totalMoney: cumulativeTotalMoney,
+        expenditures: cumulativeExpenditures,
+      });
+    });
+
+    return data;
+  })();
 
   return (
     <div className="min-h-screen bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100">
@@ -102,7 +150,7 @@ export default function Dashboard() {
       </div>
 
       <div className="p-6 max-w-5xl mx-auto">
-        <h1 className="text-xl font-bold text-center mb-4"> Welcome, {user.email}</h1>
+        <h1 className="text-xl font-bold mb-4 text-left">Welcome, {user.email}</h1>
 
         {financeData ? (
           <>
@@ -136,11 +184,13 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Charts container */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-              {/* Pie chart */}
+            {/* Charts */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-10">
+              {/* Pie Chart */}
               <div className="bg-neutral-100 dark:bg-neutral-800 p-6 rounded-lg shadow">
-                <h3 className="text-lg font-semibold mb-4 text-center">Income vs Expenditures vs Savings</h3>
+                <h3 className="text-lg font-semibold mb-4 text-center">
+                  Income vs Expenditures vs Savings
+                </h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
@@ -154,7 +204,10 @@ export default function Dashboard() {
                       label
                     >
                       {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -163,11 +216,16 @@ export default function Dashboard() {
                 </ResponsiveContainer>
               </div>
 
-              {/* Bar chart */}
+              {/* Bar Chart */}
               <div className="bg-neutral-100 dark:bg-neutral-800 p-6 rounded-lg shadow">
-                <h3 className="text-lg font-semibold mb-4 text-center">Income vs Expenditures</h3>
+                <h3 className="text-lg font-semibold mb-4 text-center">
+                  Income vs Expenditures
+                </h3>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={barData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                  <BarChart
+                    data={barData}
+                    margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis />
@@ -178,9 +236,98 @@ export default function Dashboard() {
                 </ResponsiveContainer>
               </div>
             </div>
+
+            {/* Add Transaction and Line Chart side by side */}
+            <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl mx-auto">
+              {/* Add Transaction Form */}
+              <div>
+                <AddTransaction
+                  userId={user.id}
+                  onTransactionAdded={() => fetchFinanceAndTransactions(user.id)}
+                />
+              </div>
+
+              {/* Line Chart */}
+              <div className="bg-neutral-100 dark:bg-neutral-800 p-6 rounded-lg shadow">
+                <h2 className="text-xl font-bold mb-4 text-center">
+                  Total Money vs Expenditures Over Time
+                </h2>
+                {lineData.length === 0 ? (
+                  <p className="text-neutral-500 dark:text-neutral-400">
+                    No data available for chart.
+                  </p>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart
+                      data={lineData}
+                      margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend verticalAlign="bottom" height={36} />
+                      <Line
+                        type="monotone"
+                        dataKey="totalMoney"
+                        stroke="#4ade80"
+                        name="Total Money (£)"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="expenditures"
+                        stroke="#f87171"
+                        name="Expenditures (£)"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+
+            {/* Transactions List below */}
+            <div className="mt-10 max-w-5xl mx-auto">
+              <h2 className="text-xl font-bold mb-4">Recent Transactions</h2>
+              {transactions.length === 0 ? (
+                <p className="text-neutral-500 dark:text-neutral-400">
+                  No transactions found.
+                </p>
+              ) : (
+                <ul className="divide-y divide-neutral-300 dark:divide-neutral-700 max-w-xl">
+                  {transactions.map((tx) => (
+                    <li
+                      key={tx.id}
+                      className="py-3 flex justify-between items-center"
+                    >
+                      <div>
+                        <p className="font-semibold">{tx.description}</p>
+                        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                          {tx.category} • {new Date(tx.date).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <p
+                        className={`font-bold ${
+                          tx.amount >= 0
+                            ? "text-green-600 dark:text-green-400"
+                            : "text-red-600 dark:text-red-400"
+                        }`}
+                      >
+                        £{tx.amount.toFixed(2)}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </>
         ) : (
-          <p className="mt-6 text-sm text-neutral-500 dark:text-neutral-400">No finance data found.</p>
+          <p className="mt-6 text-sm text-neutral-500 dark:text-neutral-400">
+            No finance data found.
+          </p>
         )}
       </div>
     </div>
