@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabaseClient"
 import { useRouter } from "next/navigation"
+import Navbar from ".././components/Navbar"; 
 
 export default function HomePage() {
   const [session, setSession] = useState(null)
@@ -32,45 +33,8 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white">
       {/* Top nav bar */}
-      <div className="w-full border-b border-neutral-200 dark:border-neutral-700 px-6 py-4 flex justify-between items-center">
-        <div className="text-2xl font-bold">
-            <button onClick={async () => {
-            router.push("/dashboard")}}>
-            Coreys Webpage
-          </button></div>
-        <nav className="space-x-6 flex items-center">
-  <a href="/" className="hover:underline">Home</a>
-
-  {session && (
-    <a href="/dashboard" className="hover:underline">
-      Dashboard
-    </a>
-  )}
-
-  {session && (
-    <a href="/userSetup" className="hover:underline">
-      Finance Information
-    </a>
-  )}
-
-  {session ? (
-    <button
-      onClick={async () => {
-        await supabase.auth.signOut()
-        router.push('/login')
-      }}
-      className="bg-red-500 text-white px-4 py-2 rounded"
-    >
-      Logout
-    </button>
-  ) : (
-    <>
-      <a href="/login" className="hover:underline">Login</a>
-      <a href="/login/register" className="hover:underline">Register</a>
-    </>
-  )}
-</nav>
-</div>
+      <Navbar/>
+      
 
       {/* Main content */}
       <div className="max-w-2xl mx-auto mt-20 px-4 text-center">

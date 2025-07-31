@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
 import Link from "next/link";
+import Navbar from ".././components/Navbar"; 
 
 export default function UserSetup() {
   const router = useRouter();
@@ -75,47 +76,7 @@ export default function UserSetup() {
   return (
     <div className="min-h-screen bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 flex flex-col">
       {/* Navbar */}
-      <div className="w-full border-b border-neutral-200 dark:border-neutral-700 px-6 py-4 flex justify-between items-center">
-        <div className="text-2xl font-bold">
-          <button onClick={async () => {
-            router.push("/dashboard")
-          }}>
-            Finance Visualiser
-          </button></div>
-        <nav className="space-x-6 flex items-center">
-          <Link href="/" className="hover:underline">
-            Home
-          </Link>
-          {session && (
-            <>
-              <Link href="/dashboard" className="hover:underline">
-                Dashboard
-              </Link>
-              <Link href="/userSetup" className="hover:underline">
-                Finance Information
-              </Link>
-             <button
-              onClick={async () => {
-                router.push('/settings')
-              }}
-              className="bg-blue-500 text-white px-4 py-2 rounded"
-            >
-              Settings
-            </button>
-            </>
-          )}
-          {!session && (
-            <>
-              <Link href="/login" className="hover:underline">
-                Login
-              </Link>
-              <Link href="/login/register" className="hover:underline">
-                Register
-              </Link>
-            </>
-          )}
-        </nav>
-      </div>
+      <Navbar/>
 
       {/* Form */}
       <main className="max-w-2xl mx-auto mt-12 px-4 flex-grow">
