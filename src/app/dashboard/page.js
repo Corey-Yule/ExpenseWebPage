@@ -135,7 +135,13 @@ export default function Dashboard() {
     <div className="min-h-screen bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100">
       {/* Navbar */}
       <div className="w-full border-b border-neutral-200 dark:border-neutral-700 px-6 py-4 flex justify-between items-center">
-        <div className="text-2xl font-bold">Corey’s Webpage</div>
+        <div className="text-2xl font-bold">
+          <button onClick={async () => {
+            router.push("/dashboard")
+          }}>
+            Finance Visualiser
+          </button>
+        </div>
         <nav className="space-x-6 flex items-center">
           <Link href="/" className="hover:underline">
             Home
@@ -148,22 +154,21 @@ export default function Dashboard() {
           </Link>
           <button
             onClick={async () => {
-              await supabase.auth.signOut();
-              router.push("/login");
+              router.push('/settings')
             }}
-            className="bg-red-500 text-white px-4 py-2 rounded"
+            className="bg-blue-500 text-white px-4 py-2 rounded"
           >
-            Logout
+            Settings
           </button>
         </nav>
       </div>
 
       <div className="p-6 max-w-5xl mx-auto">
-        <h1 className="text-xl font-bold mb-4 text-left">Welcome, {user.email}</h1>
+        <h1 className="text-xl font-bold mb-4 text-center">Welcome, {user.email}</h1>
 
         {financeData ? (
           <>
-            <h2 className="text-xl font-bold mb-4">Your Finance Overview</h2>
+            <h2 className="text-xl font-bold mb-4 text-center">Your Finance Overview</h2>
 
             {/* Summary cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -334,9 +339,15 @@ export default function Dashboard() {
             </div>
           </>
         ) : (
-          <p className="mt-6 text-sm text-neutral-500 dark:text-neutral-400">
-            No finance data found.
-          </p>
+          <div className="mt-6 max-w-xl text-neutral-500 dark:text-neutral-400">
+            <p>No finance data found.</p>
+            <button
+              onClick={() => router.push("/userSetup")}
+              className="inline-block bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600 mt-2"
+            >
+              Insert Financial Information
+            </button>
+          </div>
         )}
       </div>
     </div>

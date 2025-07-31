@@ -37,7 +37,7 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100">
       {/* Navbar */}
       <div className="w-full border-b border-neutral-200 dark:border-neutral-700 px-6 py-4 flex justify-between items-center">
-        <div className="text-2xl font-bold">Corey’s Webpage</div>
+        <div className="text-2xl font-bold">Finance Visualiser</div>
         <nav className="space-x-6">
           <a href="/" className="hover:underline">Home</a>
           <a href="/login" className="hover:underline">Login</a>
